@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 *.rest
+request.rest
