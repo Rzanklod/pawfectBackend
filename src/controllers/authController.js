@@ -7,7 +7,7 @@ const handleLogin = async (req, res) => {
     try{
         const { username, password } = req.body;
         if(!username || !password){
-            return res.status(400).json({ 'message': 'Username and password are required.' });
+            return res.sendStatus(400).json({ 'message': 'Username and password are required.' });
         }
     
         const foundUser = await sql`
@@ -29,8 +29,13 @@ const handleLogin = async (req, res) => {
             SET refresh_token = ${refreshToken}
             WHERE username = ${username}
         `;
-        
-        res.cookie('jwt', refreshToken, { secure: true, maxAge: 24 * 60 * 60 * 1000 });
+
+        res.cookie('jwt', refreshToken, { 
+            secure: true,
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly: true 
+        });
+
         return res.json({ accesToken });
     } catch {
         return res.sendStatus(500);
