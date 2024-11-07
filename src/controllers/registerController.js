@@ -39,7 +39,6 @@ const handleNewUser = async (req, res) => {
             )
             RETURNING *
         `;
-        console.log(newUser);
 
         return res.sendStatus(201);
     } catch {

@@ -1,5 +1,16 @@
 const sql = require('./db');
 
+const getPetOwner = async(petId) => {
+    const [user] = await sql`
+        SELECT username, user_id
+        FROM users
+        JOIN users_pets ON users_pets.user_id = users.id
+        JOIN pets ON users_pets.pet_id = pets.id
+        WHERE access_level = 0 AND pet_id = ${petId}
+    `;
+    return user;
+}
+
 const getAllPets = async (req, res) => {
     try{
         const userid = req?.query?.userid;
@@ -39,7 +50,7 @@ const createNewPet = async (req, res) => {
         const dateOfBirth = req.body?.dateOfBirth;
         const description = req.body?.description;
         const name = req.body?.name;
-        // narazie bez obrazka potem sie ogarniecccc
+        // narazie bez obrazka potem sie ogarnie
         if(!gender || !dateOfBirth || !description || !name){
             return res.status(400).json({ message: 'gender, dateOfBirth, description and name are required' });
         }
@@ -73,6 +84,111 @@ const createNewPet = async (req, res) => {
             )
             RETURNING *
         `;
+        return res.sendStatus(201);
+    } catch {
+        return res.sendStatus(500);
+    }
+}
+
+const removePet = async (req, res) => {
+    try{
+        const id = req.params?.id;
+        if(!id) return res.status(400).json({ message: 'Pet ID is required' });
+
+        const user = await getPetOwner(id);
+        
+        if(!user) return res.sendStatus(404);
+
+        if(user.username != req.user){
+            return res.status(403).json({ message: 'You dont have acces to that pet' });
+        }
+        
+        await sql`
+            DELETE FROM users_pets WHERE pet_id = ${id}
+        `;
+
+        await sql`
+            DELETE FROM pets WHERE id = ${id}
+        `;
+
+        return res.sendStatus(204);
+    } catch {
+        return res.sendStatus(500);
+    }
+}
+
+const sharePetAccess = async (req, res) => {
+    try{
+        const id = req.params?.id;
+        if(!id) return res.status(400).json({ message: 'Pet ID is required' });
+
+        const useridToAdd = Number.parseInt(req.body?.userid, 10);
+        if(!useridToAdd) 
+            return res.status(400).json({ message: 'You need to specify a userid to share pet with' });
+
+        if(![await sql`SELECT id FROM users WHERE id = ${useridToAdd}`])
+            return res.status(404).json({ message: 'You cant share pet with user that doesnt exist' });
+
+        const accessLevel = Number.parseInt(req.body?.accessLevel, 10);
+        if(!accessLevel) 
+            return res.status(400).json({ message: 'Access level is required.' });
+        if(accessLevel != 1 && accessLevel != 2)
+            return res.status(400).json({ message: 'Invalid access level' });
+        
+        const user = await getPetOwner(id);
+        
+        if(!user) return res.sendStatus(404);
+        
+        if(user.username != req.user){
+            return res.status(403).json({ message: 'You dont have acces to that pet' });
+        }
+
+        const [accessExists] = await sql`
+            SELECT user_id FROM users_pets WHERE pet_id = ${id} AND user_id = ${useridToAdd}
+        `;
+
+        if(accessExists)
+            return res.status(409).json({ message: 'User already has acces to that pet' });
+
+        const [addedUser] = await sql`
+            INSERT INTO users_pets(
+                user_id, pet_id, access_level
+            )
+            VALUES (
+                ${useridToAdd}, ${id}, ${accessLevel}
+            )
+            RETURNING user_id, pet_id, access_level
+        `;
+        
+        return res.status(201).json({ ...addedUser });
+    } catch {
+        return res.sendStatus(500);
+    }
+}
+
+const removePetAccess = async (req, res) => {
+    try{
+        const id = req.params?.id;
+        if(!id) return res.status(400).json({ message: 'Pet ID is required' });
+        
+        const useridToRemove = Number.parseInt(req.body?.userid, 10);
+        if(!useridToRemove) 
+            return res.status(400).json({ message: 'You need to specify a userid' });
+
+        const user = await getPetOwner(id);
+        
+        if(!user) return res.sendStatus(404);
+
+        if(user.username != req.user){
+            return res.status(403).json({ message: 'You dont have acces to that pet' });
+        }
+
+        await sql`
+            DELETE FROM users_pets
+            WHERE user_id = ${useridToRemove} AND pet_id = ${id}
+        `;
+    
+        return res.sendStatus(204);
     } catch {
         return res.sendStatus(500);
     }
@@ -81,5 +197,7 @@ const createNewPet = async (req, res) => {
 module.exports = {
     getAllPets,
     createNewPet,
-
+    removePet,
+    sharePetAccess,
+    removePetAccess
 }

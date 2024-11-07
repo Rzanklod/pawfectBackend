@@ -6,16 +6,16 @@ const verifyJWT = require('../middleware/verifyJWT');
 router.use(verifyJWT);
 
 router.route('/')
-    .get(petsController.getAllPets) // zwraca liste zwierzakow. Narazie dla konkretnego id uzytkownika z querki
-    .post(petsController.createNewPet); // dodawanie nowego
+    .get(petsController.getAllPets) 
+    .post(petsController.createNewPet); 
     
 router.route('/:id')
-    .get()
-    .delete() // usuwanie
-    .put();  // update zwierzaka
+    // .get()
+    .delete(petsController.removePet) 
+    // .put();
     
-router.route('/share')
-    .post() // do dodawanai wspoldzielenia zwierzaka
-    .delete() // do usuwania wspoldzielenia zwierzaka
-
+router.route('/:id/access')
+    .post(petsController.sharePetAccess)
+    .delete(petsController.removePetAccess)
+    // .get();
 module.exports = router;
