@@ -183,6 +183,9 @@ const removePetAccess = async (req, res) => {
             return res.status(403).json({ message: 'You dont have acces to that pet' });
         }
 
+        if(user.user_id == useridToRemove)
+            return res.status(403).json({ message: 'You cant remove acces to your own pet' });
+
         await sql`
             DELETE FROM users_pets
             WHERE user_id = ${useridToRemove} AND pet_id = ${id}
