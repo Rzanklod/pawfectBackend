@@ -9,9 +9,13 @@ router.route('/')
     .get(petsController.getAllPets) // zwraca liste zwierzakow. Narazie dla konkretnego id uzytkownika z querki
     .post(petsController.createNewPet); // dodawanie nowego
     
-    router.route('/:id')
+router.route('/:id')
     .get()
     .delete() // usuwanie
     .put();  // update zwierzaka
+    
+router.route('/share')
+    .post() // do dodawanai wspoldzielenia zwierzaka
+    .delete() // do usuwania wspoldzielenia zwierzaka
 
 module.exports = router;

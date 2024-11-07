@@ -43,12 +43,15 @@ const createNewPet = async (req, res) => {
         if(!gender || !dateOfBirth || !description || !name){
             return res.status(400).json({ message: 'gender, dateOfBirth, description and name are required' });
         }
-        if(gender !== 'F' || gender !== 'M') return res.status(400).json({ message: `Invalid gender. '${gender}' != 'F' || 'M'` });
 
+        if(gender !== 'F' && gender !== 'M'){
+            return res.status(400).json({ message: `Invalid gender. '${gender}' != 'F' || 'M'` });
+        }
+        
         const [user] = await sql`
             SELECT id FROM users WHERE username = ${req?.user}
         `;
-        
+        console.log(user);
         if(!user) return res.sendStatus(400);
     
         const [newPet] = await sql`
