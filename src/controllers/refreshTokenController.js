@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const sql = require('./db');
-const { REFRESH_TOKEN_SECRET, ACCES_TOKEN_SECRET } = require('../../config');
+const { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET } = require('../../config');
 
 const handleRefreshToken = async (req, res) => {
     try{
@@ -23,7 +23,7 @@ const handleRefreshToken = async (req, res) => {
                 if(err || foundUser[0].username !== decoded.username) return res.sendStatus(401);
                 const accessToken = jwt.sign(
                     { "username": decoded.username }, 
-                    ACCES_TOKEN_SECRET,
+                    ACCESS_TOKEN_SECRET,
                     { expiresIn: '60s' }
                 );
                 res.json({ accessToken });

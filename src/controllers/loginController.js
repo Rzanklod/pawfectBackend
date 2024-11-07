@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sql = require('./db');
-const { ACCES_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require('../../config');
+const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require('../../config');
 
 const handleLogin = async (req, res) => {
     try{
@@ -21,7 +21,7 @@ const handleLogin = async (req, res) => {
         const match = bcrypt.compare(password, foundUser[0].hashed_password);
         if(!match) return res.sendStatus(401);
     
-        const accesToken = jwt.sign({ username }, ACCES_TOKEN_SECRET, { expiresIn: '60s' });
+        const accessToken = jwt.sign({ username }, ACCESS_TOKEN_SECRET, { expiresIn: '60s' });
         const refreshToken = jwt.sign({ username }, REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
 
         await sql`
@@ -36,7 +36,7 @@ const handleLogin = async (req, res) => {
             httpOnly: true 
         });
 
-        return res.json({ accesToken });
+        return res.json({ accessToken });
     } catch {
         return res.sendStatus(500);
     }

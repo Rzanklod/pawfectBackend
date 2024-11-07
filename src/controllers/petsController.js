@@ -16,7 +16,7 @@ const getAllPets = async (req, res) => {
             SELECT
                 user_id,
                 pet_id,
-                acces_level,
+                access_level,
                 gender,
                 date_of_birth,
                 description,
@@ -39,7 +39,7 @@ const createNewPet = async (req, res) => {
         const dateOfBirth = req.body?.dateOfBirth;
         const description = req.body?.description;
         const name = req.body?.name;
-        // narazie bez obrazka potem sie ogarnie
+        // narazie bez obrazka potem sie ogarniecccc
         if(!gender || !dateOfBirth || !description || !name){
             return res.status(400).json({ message: 'gender, dateOfBirth, description and name are required' });
         }
@@ -51,7 +51,7 @@ const createNewPet = async (req, res) => {
         const [user] = await sql`
             SELECT id FROM users WHERE username = ${req?.user}
         `;
-        console.log(user);
+
         if(!user) return res.sendStatus(400);
     
         const [newPet] = await sql`
@@ -66,7 +66,7 @@ const createNewPet = async (req, res) => {
 
         const [userPetRelation] = await sql`
             INSERT INTO users_pets(
-                user_id, pet_id, acces_level
+                user_id, pet_id, access_level
             )
             VALUES(
                 ${user.id}, ${newPet.id}, 0
