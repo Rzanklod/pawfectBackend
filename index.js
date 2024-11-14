@@ -7,6 +7,7 @@ const loginRouter = require('./src/routes/login');
 const refreshRouter = require('./src/routes/refresh'); 
 const petsRouter = require('./src/routes/pets');
 const logoutRouter = require('./src/routes/logout');
+const registerRouter = require('./src/routes/register'); 
 const { APP_PORT, API_ROUTE } = require('./config');
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(`${API_ROUTE}/login`, loginRouter);
 app.use(`${API_ROUTE}/refresh`, refreshRouter);
 app.use(`${API_ROUTE}/logout`, logoutRouter);
 app.use(`${API_ROUTE}/pets`, petsRouter);
+app.use(`${API_ROUTE}/register`, registerRouter); 
 
 app.listen(APP_PORT, () => {
   console.log(`App listening on port ${APP_PORT}`);
