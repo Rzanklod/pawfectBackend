@@ -131,3 +131,5 @@ dist
 
 *.rest
 request.rest
+
+uploads/avatars/

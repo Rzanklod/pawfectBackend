@@ -6,6 +6,13 @@ const handleNewUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
+        if(
+            (username.length > 24 || password.length > 32 || email.length > 254) 
+            || 
+            (username.length < 3 || password.length < 8)){
+            return res.status(400).json({ 'message': 'Username, password or email has invalid length.' });
+        }
+        
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'Username, email, and password are required.' });
         }
