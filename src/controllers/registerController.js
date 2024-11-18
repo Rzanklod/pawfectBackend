@@ -2,17 +2,21 @@ const bcrypt = require('bcrypt');
 const sql = require('./db');
 const { sendVerificationEmail } = require('./mailer'); 
 
+const generateVerificationCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 const handleNewUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        if(
-            (username.length > 24 || password.length > 32 || email.length > 254) 
-            || 
-            (username.length < 3 || password.length < 8)){
-            return res.status(400).json({ 'message': 'Username, password or email has invalid length.' });
+        if (
+            username.length > 24 || password.length > 32 || email.length > 254 ||
+            username.length < 3 || password.length < 8
+        ) {
+            return res.status(400).json({ message: 'Username, password or email has invalid length.' });
         }
-        
+
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'Username, email, and password are required.' });
         }
@@ -27,22 +31,25 @@ const handleNewUser = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        const verificationCode = generateVerificationCode();
+        console.log('Generated verification code:', verificationCode);
+
         await sql`
-            INSERT INTO users (username, hashed_password, email)
-            VALUES (${username}, ${hashedPassword}, ${email})
+            INSERT INTO users (username, hashed_password, email, verification_code, is_verified)
+            VALUES (${username}, ${hashedPassword}, ${email}, ${verificationCode}, false)
         `;
 
-        return res.status(201).json({ message: 'User registered successfully.' });
+        console.log('User inserted into database with verification code.');
+
+        await sendVerificationEmail(email, username, verificationCode);
+        console.log('Verification email sent to:', email);
+
+        return res.status(201).json({ message: 'User registered successfully. Verification code sent to email.' });
     } catch (error) {
         console.error('Registration error:', error);
         return res.status(500).json({ message: 'Server error during registration.' });
     }
-};
-
-
-// Funkcja do generowania 6-cyfrowego kodu weryfikacyjnego
-const generateVerificationCode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 module.exports = { handleNewUser };

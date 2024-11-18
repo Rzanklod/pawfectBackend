@@ -9,6 +9,7 @@ const petsRouter = require('./src/routes/pets');
 const logoutRouter = require('./src/routes/logout');
 const registerRouter = require('./src/routes/register');
 const uploadsRouter = require('./src/routes/uploads'); 
+const verifyRouter = require('./src/routes/verify');
 const { APP_PORT, API_ROUTE, AVATARS_DIR } = require('./config');
 
 const app = express();
@@ -31,6 +32,7 @@ app.use(`${API_ROUTE}/refresh`, refreshRouter);
 app.use(`${API_ROUTE}/logout`, logoutRouter);
 app.use(`${API_ROUTE}/pets`, petsRouter);
 app.use(`${API_ROUTE}/register`, registerRouter); 
+app.use(`${API_ROUTE}/verify`, verifyRouter);
 app.use(`${API_ROUTE}/uploads`, uploadsRouter);
 
 app.listen(APP_PORT, () => {
