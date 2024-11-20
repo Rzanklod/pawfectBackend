@@ -26,17 +26,18 @@ const getAllPets = async (req, res) => {
     
         const userPets = await sql`
             SELECT
-                user_id,
-                pet_id,
-                access_level,
-                gender,
-                date_of_birth,
-                description,
-                photo_path,
-                name
-            FROM users
-            JOIN users_pets ON users.id = users_pets.user_id
-            JOIN pets on users_pets.pet_id = pets.id
+                up.user_id,
+                up.pet_id,
+                up.access_level,
+                p.gender,
+                p.date_of_birth,
+                p.description,
+                p.avatar_filename,
+                p.name
+            FROM users u
+            JOIN users_pets up ON u.id = up.user_id
+            JOIN pets p on up.pet_id = p.id
+            WHERE up.user_id = ${userid}
         `;
     
         return res.json(userPets);
@@ -51,7 +52,7 @@ const createNewPet = async (req, res) => {
         const dateOfBirth = req.body?.dateOfBirth;
         const description = req.body?.description;
         const name = req.body?.name;
-        // narazie bez obrazka potem sie ogarnie
+        
         if(!gender || !dateOfBirth || !description || !name){
             return res.status(400).json({ message: 'gender, dateOfBirth, description and name are required' });
         }
@@ -65,27 +66,29 @@ const createNewPet = async (req, res) => {
         `;
 
         if(!user) return res.sendStatus(400);
+        const [newPet, userPetRelation] = await sql.begin(async sql => {
+            const [newPet] = await sql`
+                INSERT INTO pets(
+                    gender, date_of_birth, description, name
+                )
+                VALUES(
+                    ${gender}, TO_DATE(${dateOfBirth}, 'DD-MM-YYYY'), ${description}, ${name}
+                )
+                RETURNING *
+            `;
     
-        const [newPet] = await sql`
-            INSERT INTO pets(
-                gender, date_of_birth, description, name
-            )
-            VALUES(
-                ${gender}, TO_DATE(${dateOfBirth}, 'DD-MM-YYYY'), ${description}, ${name}
-            )
-            RETURNING *
-        `;
-
-        const [userPetRelation] = await sql`
-            INSERT INTO users_pets(
-                user_id, pet_id, access_level
-            )
-            VALUES(
-                ${user.id}, ${newPet.id}, 0
-            )
-            RETURNING *
-        `;
-        return res.sendStatus(201);
+            const [userPetRelation] = await sql`
+                INSERT INTO users_pets(
+                    user_id, pet_id, access_level
+                )
+                VALUES(
+                    ${user.id}, ${newPet.id}, 0
+                )
+                RETURNING *
+            `;
+            return [newPet, userPetRelation];
+        });
+        return res.status(201).json({ newPet });
     } catch {
         return res.sendStatus(500);
     }
