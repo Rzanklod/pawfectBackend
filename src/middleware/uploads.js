@@ -7,7 +7,7 @@ const avatarStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         const avatarsPath = path.join(__dirname, '..', '..', AVATARS_DIR);
         if(!fs.existsSync(avatarsPath)){
-            fs.mkdirSync(avatarsPath, { recursive: true });
+            fs.mkdirSync(avatarsPath, { recursive: true })
         }
         cb(null, avatarsPath)
     },
