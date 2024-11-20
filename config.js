@@ -10,5 +10,6 @@ module.exports = {
     POSTGRES_HOST: process.env.POSTGRES_HOST || '127.0.0.1',
     POSTGRES_PORT: process.env.POSTGRES_PORT || '5432',
     POSTGRES_DB_NAME: process.env.POSTGRES_DB_NAME || 'devdb',
-    AVATARS_DIR: process.env.AVATARS_DIR || `uploads/avatars`
+    AVATARS_USERS_DIR: process.env.AVATARS_USERS_DIR || 'uploads/avatars/users',
+    AVATARS_PETS_DIR: process.env.AVATARS_PETS_DIR || 'uploads/avatars/pets'
 };

@@ -1,4 +1,5 @@
 const sql = require('./db');
+const { PET_ACCESS_LEVEL } = require('../constants/constants');
 
 const getPetOwner = async(petId) => {
     const [user] = await sql`
@@ -132,7 +133,7 @@ const sharePetAccess = async (req, res) => {
         const accessLevel = Number.parseInt(req.body?.accessLevel, 10);
         if(!accessLevel) 
             return res.status(400).json({ message: 'Access level is required.' });
-        if(accessLevel != 1 && accessLevel != 2)
+        if(accessLevel != PET_ACCESS_LEVEL.READ_WRITE && accessLevel != PET_ACCESS_LEVEL.READ)
             return res.status(400).json({ message: 'Invalid access level' });
         
         const user = await getPetOwner(id);

@@ -9,7 +9,7 @@ const handleRefreshToken = async (req, res) => {
         const refreshToken = cookies.jwt;
         
         const foundUser = await sql`
-            SELECT username, refresh_token
+            SELECT id, username, refresh_token
             FROM users
             WHERE refresh_token = ${refreshToken}
         `;
@@ -26,7 +26,7 @@ const handleRefreshToken = async (req, res) => {
                     ACCESS_TOKEN_SECRET,
                     { expiresIn: '60s' }
                 );
-                res.json({ accessToken });
+                res.json({ uid: foundUser[0].id, accessToken });
             }
         )
     } catch {

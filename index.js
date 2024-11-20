@@ -8,9 +8,8 @@ const refreshRouter = require('./src/routes/refresh');
 const petsRouter = require('./src/routes/pets');
 const logoutRouter = require('./src/routes/logout');
 const registerRouter = require('./src/routes/register');
-const uploadsRouter = require('./src/routes/uploads'); 
 const verifyRouter = require('./src/routes/verify');
-const { APP_PORT, API_ROUTE, AVATARS_DIR } = require('./config');
+const { APP_PORT, API_ROUTE, AVATARS_USERS_DIR, AVATARS_PETS_DIR } = require('./config');
 
 const app = express();
 
@@ -24,7 +23,8 @@ app.use((req, res, next) => {
   next();
 })
 
-app.use(`${API_ROUTE}/${AVATARS_DIR}`, express.static(AVATARS_DIR)); // statyczna do zdjec itp nie
+app.use(`${API_ROUTE}/users/avatars`, express.static(AVATARS_USERS_DIR)); // statyczna do zdjec userow
+app.use(`${API_ROUTE}/pets/avatars`, express.static(AVATARS_PETS_DIR)); // do petow
 
 app.use(`${API_ROUTE}/users`, userRouter);
 app.use(`${API_ROUTE}/login`, loginRouter);
@@ -33,7 +33,6 @@ app.use(`${API_ROUTE}/logout`, logoutRouter);
 app.use(`${API_ROUTE}/pets`, petsRouter);
 app.use(`${API_ROUTE}/register`, registerRouter); 
 app.use(`${API_ROUTE}/verify`, verifyRouter);
-app.use(`${API_ROUTE}/uploads`, uploadsRouter);
 
 app.listen(APP_PORT, () => {
   console.log(`App listening on port ${APP_PORT}`);
