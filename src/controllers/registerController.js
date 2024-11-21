@@ -35,17 +35,20 @@ const handleNewUser = async (req, res) => {
         const verificationCode = generateVerificationCode();
         console.log('Generated verification code:', verificationCode);
 
-        await sql`
+        const result = await sql`
             INSERT INTO users (username, hashed_password, email, verification_code, is_verified)
             VALUES (${username}, ${hashedPassword}, ${email}, ${verificationCode}, false)
+            RETURNING id;  -- Zwracamy id użytkownika
         `;
+
+        const userId = result[0].id;  
 
         console.log('User inserted into database with verification code.');
 
         await sendVerificationEmail(email, username, verificationCode);
         console.log('Verification email sent to:', email);
 
-        return res.status(201).json({ message: 'User registered successfully. Verification code sent to email.' });
+        return res.status(201).json({ message: 'User registered successfully. Verification code sent to email.', userId });
     } catch (error) {
         console.error('Registration error:', error);
         return res.status(500).json({ message: 'Server error during registration.' });
