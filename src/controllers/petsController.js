@@ -107,13 +107,15 @@ const removePet = async (req, res) => {
             return res.status(403).json({ message: 'You dont have acces to that pet' });
         }
         
-        await sql`
-            DELETE FROM users_pets WHERE pet_id = ${id}
-        `;
-
-        await sql`
-            DELETE FROM pets WHERE id = ${id}
-        `;
+        await sql.begin(async sql => {
+            await sql`
+                DELETE FROM users_pets WHERE pet_id = ${id}
+            `;
+    
+            await sql`
+                DELETE FROM pets WHERE id = ${id}
+            `;
+        })
 
         return res.sendStatus(204);
     } catch {
