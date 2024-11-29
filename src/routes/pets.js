@@ -10,20 +10,31 @@ const { AVATAR_TYPES } = require('../constants/constants');
 router.use(verifyJWT);
 
 router.route('/')
-    .get(petsController.getAllPets) 
-    .post(petsController.createNewPet); 
-    
+    .get((req, res) => {
+        const userId = req.query.userId;  
+        if (!userId) {
+            return res.status(400).json({ message: "Brak identyfikatora użytkownika" });
+        }
+        petsController.getAllPets(req, res);  
+    })
+    .post(petsController.createNewPet);
+
+// Endpoint do operacji na zwierzętach według ID
 router.route('/:id')
-    // .get()
-    .delete(petsController.removePet) 
-    // .put();
-    
+    .get(petsController.getPetDetails)  
+    .delete(petsController.removePet);
+
+// Endpoint do zarządzania dostępem do zwierząt
 router.route('/:id/access')
     .post(petsController.sharePetAccess)
-    .delete(petsController.removePetAccess)
-    // .get();
+    .delete(petsController.removePetAccess);
 
+// Endpoint do zarządzania avatarami zwierząt
 router.route('/:id/avatar')
     .post(verifyPetOwnership, uploadHandler(AVATAR_TYPES.PET).single('image'), handleNewPetAvatar);
+
+// Endpoint do pobierania nazw avatarów zwierząt
+router.route('/avatars')
+    .get(petsController.getAllAnimalAvatars); 
 
 module.exports = router;
