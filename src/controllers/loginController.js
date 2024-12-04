@@ -33,7 +33,7 @@ const handleLogin = async (req, res) => {
 
     console.log("Generating tokens");
     const accessToken = jwt.sign({ username }, ACCESS_TOKEN_SECRET, {
-      expiresIn: "600s",
+      expiresIn: "15s",
     });
     const refreshToken = jwt.sign({ username }, REFRESH_TOKEN_SECRET, {
       expiresIn: "1d",

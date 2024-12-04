@@ -10,13 +10,7 @@ const { AVATAR_TYPES } = require('../constants/constants');
 router.use(verifyJWT);
 
 router.route('/')
-    .get((req, res) => {
-        const userId = req.query.userId;  
-        if (!userId) {
-            return res.status(400).json({ message: "Brak identyfikatora użytkownika" });
-        }
-        petsController.getAllPets(req, res);  
-    })
+    .get(petsController.getAllPets)
     .post(petsController.createNewPet);
 
 // Endpoint do operacji na zwierzętach według ID

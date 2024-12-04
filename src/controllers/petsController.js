@@ -16,19 +16,21 @@ const getPetOwner = async (petId) => {
 // Funkcja do pobierania wszystkich zwierzaków
 const getAllPets = async (req, res) => {
     try {
-        const userId = req.user?.id || req.query.userId;  
+        const userId = req.query.userid;
         if (!userId) {
             return res.status(400).json({ message: 'Brak identyfikatora użytkownika' });
         }
 
         const userPets = await sql`
             SELECT
-                p.id,
+                up.pet_id as id,
+                up.user_id,
                 p.name,
                 p.gender,
                 p.date_of_birth,
                 p.description,
-                p.avatar_filename as image
+                p.avatar_filename,
+                up.access_level
             FROM pets p
             JOIN users_pets up ON p.id = up.pet_id
             WHERE up.user_id = ${userId}

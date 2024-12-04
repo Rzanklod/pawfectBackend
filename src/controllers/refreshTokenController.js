@@ -22,7 +22,7 @@ const handleRefreshToken = async (req, res) => {
       const accessToken = jwt.sign(
         { username: decoded.username },
         ACCESS_TOKEN_SECRET,
-        { expiresIn: "600s" }
+        { expiresIn: "15s" }
       );
       res.json({ uid: foundUser[0].id, accessToken });
     });
