@@ -237,7 +237,7 @@ const getPetDetails = async (req, res) => {
                 p.gender,
                 p.date_of_birth,
                 p.description,
-                p.avatar_filename as image
+                p.avatar_filename
             FROM pets p
             WHERE p.id = ${petId}
         `;

@@ -40,11 +40,11 @@ const verifyPetOwnership = async (req, res, next) => {
         }
     
         if(foundPet.username != req.user){
-            return res.status(403).json({ message: 'You cant acces that pet' });
+            return res.status(401).json({ message: 'You cant acces that pet' });
         }
 
         if(foundPet.access_level == PET_ACCESS_LEVEL.READ){
-            return res.status(403).json({ message: 'You dont have permission to modify pets data' });
+            return res.status(401).json({ message: 'You dont have permission to modify pets data' });
         }
     
         next();

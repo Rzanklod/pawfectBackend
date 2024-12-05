@@ -15,7 +15,7 @@ const handleLogin = async (req, res) => {
     }
 
     const foundUser = await sql`
-            SELECT id, username, hashed_password
+            SELECT id, username, hashed_password, avatar_filename
             FROM users
             WHERE username = ${username}
         `;
@@ -51,7 +51,7 @@ const handleLogin = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
     });
-    return res.json({ uid: foundUser[0].id, accessToken });
+    return res.json({ uid: foundUser[0].id, accessToken, avatar_filename: foundUser[0].avatar_filename });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
