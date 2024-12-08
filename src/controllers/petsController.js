@@ -30,6 +30,7 @@ const getAllPets = async (req, res) => {
                 p.date_of_birth,
                 p.description,
                 p.avatar_filename,
+                p.feeding, -- Nowa kolumna
                 up.access_level
             FROM pets p
             JOIN users_pets up ON p.id = up.pet_id
@@ -50,9 +51,10 @@ const createNewPet = async (req, res) => {
         const dateOfBirth = req.body?.dateOfBirth;
         const description = req.body?.description;
         const name = req.body?.name;
+        const feeding = req.body?.feeding; // Nowa kolumna
 
-        if (!gender || !dateOfBirth || !description || !name) {
-            return res.status(400).json({ message: 'gender, dateOfBirth, description and name are required' });
+        if (!gender || !dateOfBirth || !description || !name || !feeding) {
+            return res.status(400).json({ message: 'gender, dateOfBirth, description, name and feeding are required' });
         }
 
         if (gender !== 'F' && gender !== 'M') {
@@ -68,10 +70,10 @@ const createNewPet = async (req, res) => {
         const [newPet, userPetRelation] = await sql.begin(async (sql) => {
             const [newPet] = await sql`
                 INSERT INTO pets(
-                    gender, date_of_birth, description, name
+                    gender, date_of_birth, description, name, feeding
                 )
                 VALUES(
-                    ${gender}, TO_DATE(${dateOfBirth}, 'YYYY-MM-DD'), ${description}, ${name}
+                    ${gender}, TO_DATE(${dateOfBirth}, 'YYYY-MM-DD'), ${description}, ${name}, ${feeding}
                 )
                 RETURNING *
             `;
@@ -237,7 +239,8 @@ const getPetDetails = async (req, res) => {
                 p.gender,
                 p.date_of_birth,
                 p.description,
-                p.avatar_filename
+                p.avatar_filename,
+                p.feeding -- Nowa kolumna
             FROM pets p
             WHERE p.id = ${petId}
         `;
@@ -250,7 +253,6 @@ const getPetDetails = async (req, res) => {
         return res.status(500).json({ message: 'Błąd serwera' });
     }
 };
-
 
 module.exports = {
     getAllPets,
