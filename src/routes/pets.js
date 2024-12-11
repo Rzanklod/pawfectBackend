@@ -33,6 +33,6 @@ router.route('/avatars')
 
 // Endpoint do zarządzania wizytami
 router.route('/:id/visits')
-    .post(petsController.addVisit); 
+    .post(verifyPetOwnership, petsController.addVisit); 
 
 module.exports = router;

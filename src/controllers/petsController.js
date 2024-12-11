@@ -30,7 +30,6 @@ const getAllPets = async (req, res) => {
                 p.date_of_birth,
                 p.description,
                 p.avatar_filename,
-                p.feeding, -- Nowa kolumna
                 up.access_level
             FROM pets p
             JOIN users_pets up ON p.id = up.pet_id
@@ -239,8 +238,7 @@ const getPetDetails = async (req, res) => {
                 p.gender,
                 p.date_of_birth,
                 p.description,
-                p.avatar_filename,
-                p.feeding -- Nowa kolumna
+                p.avatar_filename
             FROM pets p
             WHERE p.id = ${petId}
         `;
@@ -257,20 +255,20 @@ const getPetDetails = async (req, res) => {
 // Funkcja do dodawania wizyt
 const addVisit = async (req, res) => {
     const { id } = req.params;
-    const { visitDate, visitDescription, visitReason } = req.body;
+    const { visitDate, visitDescription, visitType } = req.body;
 
-    if (!visitDate || !visitDescription || !visitReason) {
+    if (!visitDate || !visitDescription || !visitType) {
         return res.status(400).json({ message: "Wszystkie pola muszą być wypełnione." });
     }
-
+    console.log(visitDate)
     try {
         // Dodanie wizyty do bazy danych
-        const result = await db.query(
-            'INSERT INTO visits (pet_id, visit_date, description, reason) VALUES ($1, $2, $3, $4) RETURNING *',
-            [id, visitDate, visitDescription, visitReason]
-        );
-
-        res.status(201).json({ message: 'Wizyta została dodana!', visit: result.rows[0] });
+        const result = await sql`
+            INSERT INTO visits (animal_id, visit_date, visit_type, notes)
+            VALUES (${id}, ${visitDate},  ${visitType}, ${visitDescription}) RETURNING *
+        `;
+        console.log(result[0]);
+        res.status(201).json({ message: 'Wizyta została dodana!', visit: result[0] });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Błąd podczas dodawania wizyty.' });
