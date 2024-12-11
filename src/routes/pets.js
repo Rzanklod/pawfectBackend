@@ -31,4 +31,8 @@ router.route('/:id/avatar')
 router.route('/avatars')
     .get(petsController.getAllAnimalAvatars); 
 
+// Endpoint do zarządzania wizytami
+router.route('/:id/visits')
+    .post(petsController.addVisit); 
+
 module.exports = router;

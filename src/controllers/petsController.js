@@ -254,6 +254,29 @@ const getPetDetails = async (req, res) => {
     }
 };
 
+// Funkcja do dodawania wizyt
+const addVisit = async (req, res) => {
+    const { id } = req.params;
+    const { visitDate, visitDescription, visitReason } = req.body;
+
+    if (!visitDate || !visitDescription || !visitReason) {
+        return res.status(400).json({ message: "Wszystkie pola muszą być wypełnione." });
+    }
+
+    try {
+        // Dodanie wizyty do bazy danych
+        const result = await db.query(
+            'INSERT INTO visits (pet_id, visit_date, description, reason) VALUES ($1, $2, $3, $4) RETURNING *',
+            [id, visitDate, visitDescription, visitReason]
+        );
+
+        res.status(201).json({ message: 'Wizyta została dodana!', visit: result.rows[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Błąd podczas dodawania wizyty.' });
+    }
+};
+
 module.exports = {
     getAllPets,
     createNewPet,
@@ -261,5 +284,6 @@ module.exports = {
     sharePetAccess,
     removePetAccess,
     getAllAnimalAvatars,
-    getPetDetails
+    getPetDetails,
+    addVisit
 };
