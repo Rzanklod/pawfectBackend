@@ -69,10 +69,10 @@ const createNewPet = async (req, res) => {
         const [newPet, userPetRelation] = await sql.begin(async (sql) => {
             const [newPet] = await sql`
                 INSERT INTO pets(
-                    gender, date_of_birth, description, name, feeding
+                    gender, date_of_birth, description, name
                 )
                 VALUES(
-                    ${gender}, TO_DATE(${dateOfBirth}, 'YYYY-MM-DD'), ${description}, ${name}, ${feeding}
+                    ${gender}, TO_DATE(${dateOfBirth}, 'YYYY-MM-DD'), ${description}, ${name}
                 )
                 RETURNING *
             `;
@@ -245,7 +245,15 @@ const getPetDetails = async (req, res) => {
 
         if (!pet) return res.status(404).json({ message: 'Pet not found' });
 
-        return res.json(pet[0]);  
+        const petVisits = await sql`
+            SELECT * FROM visits WHERE animal_id = ${petId} 
+        `;
+
+        const petDetails = {
+            ...pet[0],
+            visits: [...petVisits]
+        }
+        return res.json(petDetails);  
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd serwera' });
