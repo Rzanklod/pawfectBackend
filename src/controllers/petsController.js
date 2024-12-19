@@ -259,6 +259,7 @@ const getPetDetails = async (req, res) => {
             JOIN users_pets ON users_pets.user_id = users.id
             JOIN pets ON users_pets.pet_id = pets.id
             WHERE pet_id = ${petId}
+            ORDER BY access_level ASC
         `;
 
         const petDetails = {
