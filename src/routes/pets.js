@@ -20,7 +20,9 @@ router.route('/:id')
 
 // Endpoint do zarządzania dostępem do zwierząt
 router.route('/:id/access')
-    .post(petsController.sharePetAccess)
+    .post(petsController.sharePetAccess);
+    
+router.route('/:id/access/:uid')
     .delete(petsController.removePetAccess);
 
 // Endpoint do zarządzania avatarami zwierząt
@@ -33,6 +35,9 @@ router.route('/avatars')
 
 // Endpoint do zarządzania wizytami
 router.route('/:id/visits')
-    .post(verifyPetOwnership, petsController.addVisit); 
+    .post(verifyPetOwnership, petsController.addVisit);
+    
+router.route('/visits/:id')
+    .delete(petsController.removeVisit);
 
 module.exports = router;

@@ -133,12 +133,12 @@ const sharePetAccess = async (req, res) => {
     try {
         const id = req.params?.id;
         if (!id) return res.status(400).json({ message: 'Pet ID is required' });
+        
+        const username = req.body?.username;
+        if (!username) 
+            return res.status(400).json({ message: 'You need to specify a username to share pet with' });
 
-        const useridToAdd = Number.parseInt(req.body?.userid, 10);
-        if (!useridToAdd) 
-            return res.status(400).json({ message: 'You need to specify a userid to share pet with' });
-
-        const [userExists] = await sql`SELECT id FROM users WHERE id = ${useridToAdd}`;
+        const [userExists] = await sql`SELECT id FROM users WHERE username = ${username}`;
         if (!userExists) return res.status(404).json({ message: 'User does not exist' });
 
         const accessLevel = Number.parseInt(req.body?.accessLevel, 10);
@@ -149,6 +149,10 @@ const sharePetAccess = async (req, res) => {
 
         const user = await getPetOwner(id);
 
+        if(user.username === username){
+            return res.status(400).json({ message: 'Cant share pet with yourselves xd' });
+        }
+
         if (!user) return res.sendStatus(404);
 
         if (user.username != req.user) {
@@ -156,7 +160,7 @@ const sharePetAccess = async (req, res) => {
         }
 
         const [accessExists] = await sql`
-            SELECT user_id FROM users_pets WHERE pet_id = ${id} AND user_id = ${useridToAdd}
+            SELECT user_id FROM users_pets WHERE pet_id = ${id} AND user_id = ${userExists.id}
         `;
 
         if (accessExists) {
@@ -168,7 +172,7 @@ const sharePetAccess = async (req, res) => {
                 user_id, pet_id, access_level
             )
             VALUES (
-                ${useridToAdd}, ${id}, ${accessLevel}
+                ${userExists.id}, ${id}, ${accessLevel}
             )
             RETURNING user_id, pet_id, access_level
         `;
@@ -180,17 +184,17 @@ const sharePetAccess = async (req, res) => {
     }
 };
 
-// Funkcja do usuwania dostępu do zwierzaka
 const removePetAccess = async (req, res) => {
     try {
         const id = req.params?.id;
         if (!id) return res.status(400).json({ message: 'Pet ID is required' });
-
-        const useridToRemove = Number.parseInt(req.body?.userid, 10);
+        
+        const useridToRemove = req.params?.uid;
         if (!useridToRemove) 
             return res.status(400).json({ message: 'You need to specify a userid' });
 
         const user = await getPetOwner(id);
+        console.log(user);
 
         if (!user) return res.sendStatus(404);
 
@@ -249,9 +253,18 @@ const getPetDetails = async (req, res) => {
             SELECT * FROM visits WHERE animal_id = ${petId} 
         `;
 
+        const petOwners = await sql`
+            SELECT username, user_id, access_level, users.avatar_filename
+            FROM users
+            JOIN users_pets ON users_pets.user_id = users.id
+            JOIN pets ON users_pets.pet_id = pets.id
+            WHERE pet_id = ${petId}
+        `;
+
         const petDetails = {
             ...pet[0],
-            visits: [...petVisits]
+            visits: [...petVisits],
+            shared: [...petOwners]
         }
         return res.json(petDetails);  
     } catch (error) {
@@ -283,6 +296,48 @@ const addVisit = async (req, res) => {
     }
 };
 
+const removeVisit = async (req, res) => {
+    const { id } = req.params;
+    const user = req.user;
+    if(!id){
+        return res.status(400).json({ message: 'Visit id is required.'});
+    }
+    try{
+        const [foundAnimal] = await sql`
+            SELECT animal_id FROM visits WHERE id = ${id} 
+        `;
+
+        if(!foundAnimal){
+            return res.status(400).json({ message: 'Visit with specified id doesnt exist'});
+        }
+
+        const petOwners = await sql`
+            SELECT username
+            FROM users
+            JOIN users_pets ON users_pets.user_id = users.id
+            JOIN pets ON users_pets.pet_id = pets.id
+            WHERE (access_level = 0 OR access_level = 1) AND pet_id = ${foundAnimal.animal_id}
+        `;
+
+        const petPermission = petOwners.find((u) => u.username === user);
+        if(!petPermission){
+            return res.status(403).json({ message: 'You cant remove visits from that pet'});
+        }
+
+        await sql`
+            DELETE FROM visits WHERE id = ${id}
+        `;
+
+        return res.status(204).json({ message: 'Removed visit.'});
+    
+    } catch(error){
+        console.error(error);
+        res.status(500).json({ message: 'Error while removing pet '});
+    }
+
+    
+}
+
 module.exports = {
     getAllPets,
     createNewPet,
@@ -291,5 +346,6 @@ module.exports = {
     removePetAccess,
     getAllAnimalAvatars,
     getPetDetails,
-    addVisit
+    addVisit,
+    removeVisit
 };
