@@ -34,6 +34,7 @@ const getAllPets = async (req, res) => {
             FROM pets p
             JOIN users_pets up ON p.id = up.pet_id
             WHERE up.user_id = ${userId}
+            ORDER BY up.pet_id ASC
         `;
 
         return res.json(userPets);
