@@ -16,7 +16,8 @@ router.route('/')
 // Endpoint do operacji na zwierzętach według ID
 router.route('/:id')
     .get(petsController.getPetDetails)  
-    .delete(petsController.removePet);
+    .delete(petsController.removePet)
+    .patch(verifyPetOwnership, petsController.editPet); 
 
 // Endpoint do zarządzania dostępem do zwierząt
 router.route('/:id/access')

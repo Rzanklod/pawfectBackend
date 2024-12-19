@@ -334,9 +334,65 @@ const removeVisit = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error while removing pet '});
     }
-
-    
 }
+
+const editPet = async (req, res) => {
+    try {
+        const petId = req.params?.id;
+        if (!petId) {
+            return res.status(400).json({ message: 'Pet ID is required' });
+        }
+
+        const { name, gender, dateOfBirth, description } = req.body;
+
+        // Sprawdzamy, czy przynajmniej jedno pole zostało przekazane w żądaniu
+        if (!name && !gender && !dateOfBirth && !description ) {
+            console.log("brak pola")
+            return res.status(400).json({ message: 'At least one field is required for update' });
+        }
+
+        // Walidacja pola gender
+        if (gender !== 'F' && gender !== 'M') {
+            console.log("plec1")
+            return res.status(400).json({ message: `Invalid gender. '${gender}' != 'F' || 'M'` });
+        }
+
+        // Walidacja formatu daty
+        if (dateOfBirth && isNaN(Date.parse(dateOfBirth))) {
+            console.log("data")
+            return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD.' });
+        }
+
+        // Sprawdzamy, czy zwierzak należy do użytkownika
+        const user = await getPetOwner(petId);
+        if (!user) {
+            return res.status(404).json({ message: 'Pet not found' });
+        }
+
+        if (user.username !== req.user) {
+            return res.status(403).json({ message: 'You don\'t have access to edit this pet' });
+        }
+        const updatedPet = await sql`
+        UPDATE pets
+        SET
+            name = COALESCE(${name}, name),
+            gender = COALESCE(${gender}, gender),
+            date_of_birth = COALESCE(TO_DATE(${dateOfBirth}, 'YYYY-MM-DD'), date_of_birth),
+            description = COALESCE(${description}, description)
+        WHERE id = ${petId}
+        RETURNING *
+        `;
+
+        if (!updatedPet.length) {
+            return res.status(404).json({ message: 'Pet not found or nothing to update' });
+        }
+
+        return res.status(200).json({ message: 'Pet updated successfully', pet: updatedPet[0] });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd serwera podczas edycji danych zwierzaka' });
+    }
+};
 
 module.exports = {
     getAllPets,
@@ -347,5 +403,6 @@ module.exports = {
     getAllAnimalAvatars,
     getPetDetails,
     addVisit,
+    editPet,
     removeVisit
 };
