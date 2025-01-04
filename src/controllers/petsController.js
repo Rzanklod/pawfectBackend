@@ -263,10 +263,15 @@ const getPetDetails = async (req, res) => {
             ORDER BY access_level ASC
         `;
 
+        const petDiet = await sql`
+            SELECT * FROM products WHERE pet_id = ${petId} ORDER BY id ASC
+        `;
+
         const petDetails = {
             ...pet[0],
             visits: [...petVisits],
-            shared: [...petOwners]
+            shared: [...petOwners],
+            diet: [...petDiet]
         }
         return res.json(petDetails);  
     } catch (error) {
@@ -283,14 +288,12 @@ const addVisit = async (req, res) => {
     if (!visitDate || !visitDescription || !visitType) {
         return res.status(400).json({ message: "Wszystkie pola muszą być wypełnione." });
     }
-    console.log(visitDate)
     try {
         // Dodanie wizyty do bazy danych
         const result = await sql`
             INSERT INTO visits (animal_id, visit_date, visit_type, notes)
             VALUES (${id}, ${visitDate},  ${visitType}, ${visitDescription}) RETURNING *
         `;
-        console.log(result[0]);
         res.status(201).json({ message: 'Wizyta została dodana!', visit: result[0] });
     } catch (error) {
         console.error(error);
@@ -396,6 +399,76 @@ const editPet = async (req, res) => {
     }
 };
 
+const addDietProduct = async (req, res) => {
+    try{
+        const petId = req.params?.id;
+        const productName = req.body?.productName;
+        const productDescription = req.body?.productDescription;
+        const isAllergic = req.body?.isAllergic;
+
+        if(!productName || (typeof isAllergic !== "boolean") || !petId){
+            return res.status(400).json({ message: 'Invalid params' })
+        }
+
+        const [addedProduct] = await sql`
+            INSERT INTO products(name, description, is_allergic, pet_id)
+            VALUES (${productName}, ${productDescription}, ${isAllergic}, ${petId})
+            RETURNING *
+        `;
+        console.log(addedProduct)
+        return res.status(201).json(addedProduct);
+
+    } catch (error){
+        console.log(error);
+        return res.status(500).json({ message: 'Błąd podczas dodawania diety' });
+    }
+}
+
+const removeDietProduct = async (req, res) => {
+    try{
+        const id = req.params?.id;
+
+        if(!id){
+            return res.status(400).json({ message: 'Invalid params' })
+        }
+
+        const user = req.user;
+        if(!id){
+            return res.status(400).json({ message: 'pet id is required.'});
+        }
+
+        const [foundAnimal] = await sql`
+            SELECT pet_id FROM products WHERE id = ${id} 
+        `;
+
+        if(!foundAnimal){
+            return res.status(400).json({ message: 'product with specified id doesnt exist'});
+        }
+
+        const petOwners = await sql`
+            SELECT username
+            FROM users
+            JOIN users_pets ON users_pets.user_id = users.id
+            JOIN pets ON users_pets.pet_id = pets.id
+            WHERE (access_level = 0 OR access_level = 1) AND pet_id = ${foundAnimal.pet_id}
+        `;
+
+        const petPermission = petOwners.find((u) => u.username === user);
+        if(!petPermission){
+            return res.status(403).json({ message: 'You cant remove products from that pet'});
+        }
+
+        await sql`
+            DELETE FROM products WHERE id = ${id}
+        `;
+
+        return res.status(204).json({ message: 'Removed product.'});
+    } catch (error){
+        console.log(error);
+        return res.status(500).json({ message: 'Błąd podczas usuwania diety' });
+    }
+}
+
 module.exports = {
     getAllPets,
     createNewPet,
@@ -406,5 +479,7 @@ module.exports = {
     getPetDetails,
     addVisit,
     editPet,
-    removeVisit
+    removeVisit,
+    addDietProduct,
+    removeDietProduct
 };

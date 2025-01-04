@@ -41,4 +41,10 @@ router.route('/:id/visits')
 router.route('/visits/:id')
     .delete(petsController.removeVisit);
 
+router.route('/:id/products')
+    .post(verifyPetOwnership, petsController.addDietProduct);
+
+router.route('/products/:id')
+    .delete(petsController.removeDietProduct);
+
 module.exports = router;
