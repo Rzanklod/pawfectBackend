@@ -71,7 +71,7 @@ const deleteUser = async (req, res) => {
         const userId = req.params?.id;
         if (!userId) return res.status(400).json({ message: 'User ID is required' });
 
-        // Usuwanie użytkownika przy użyciu 'sql'
+        // Usuwanie użytkownika
         const user = await sql`
             DELETE FROM users
             WHERE id = ${userId}
@@ -86,6 +86,7 @@ const deleteUser = async (req, res) => {
         return res.status(500).json({ message: 'Błąd serwera' });
     }
 };
+
 
 module.exports = {
     getUserDetails,
