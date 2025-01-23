@@ -51,10 +51,9 @@ const createNewPet = async (req, res) => {
         const dateOfBirth = req.body?.dateOfBirth;
         const description = req.body?.description;
         const name = req.body?.name;
-        const feeding = req.body?.feeding; // Nowa kolumna
 
-        if (!gender || !dateOfBirth || !description || !name || !feeding) {
-            return res.status(400).json({ message: 'gender, dateOfBirth, description, name and feeding are required' });
+        if (!gender || !dateOfBirth || !description || !name) {
+            return res.status(400).json({ message: 'gender, dateOfBirth, description, name are required' });
         }
 
         if (gender !== 'F' && gender !== 'M') {
